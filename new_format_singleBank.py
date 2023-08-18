@@ -1455,7 +1455,7 @@ class SingleBankStatementConverter:
 
     # ***************/-first page summary sheet-/*********************#
 
-    def summary_sheet(self, idf, open_bal, close_bal):
+    def summary_sheet(self, idf, open_bal, close_bal, eod):
         opening_bal = open_bal
         closing_bal = close_bal
 
@@ -1504,8 +1504,13 @@ class SingleBankStatementConverter:
                 if row["Category"] == "Cash Withdrawal" and debit_amount > 0:
                     amount += debit_amount
             return amount
+        def no_cheque_depos(df):
+            return 0
 
+        def amt_cheque_depos(df):
+            return 0
         def no_cash_issued(df):
+
             return 0
 
         def total_amount_cash_issued(df):
@@ -1517,16 +1522,17 @@ class SingleBankStatementConverter:
         def outward_cheque_bounces(df):
             return 0
 
-        def min_eod(df):
+        def min_eod(df, month):
+            eod_df = eod.iloc[:-2]
+            eod_month = eod_df[month]
+            print(eod_month)
+
             return 0
 
-        def max_eod(df):
+        def max_eod(df, month):
             return 0
 
         def avg_eod(df):
-            return 0
-
-        def monthly_avg_bal(df):
             return 0
 
         def qtrly_avg_bal(df):
@@ -1550,7 +1556,7 @@ class SingleBankStatementConverter:
         def bounced_txns(df):
             return 0
 
-        def emi(df):
+        def emi1(df):
             amount = 0
             for index, row in df.iterrows():
                 debit_amount = row['Debit']
@@ -1608,10 +1614,10 @@ class SingleBankStatementConverter:
         def diff_bank_abb(df):
             return 0
 
-        def interest_rec(df):
+        def interest_rece(df):
             return 0
 
-        def paid_interest(df):
+        def paid_interest1(df):
             amount = 0
             for index, row in df.iterrows():
                 debit_amount = row['Debit']
@@ -1637,7 +1643,7 @@ class SingleBankStatementConverter:
                     amount += debit_amount
             return amount
 
-        def paid_tds(df):
+        def paid_tds1(df):
             amount = 0
             for index, row in df.iterrows():
                 debit_amount = row['Debit']
@@ -1676,8 +1682,12 @@ class SingleBankStatementConverter:
         amount_cd = {}
         number_cw = {}
         amount_cw = {}
+        no_cheque_depo ={}
+        amt_cheque_depo ={}
+
         number_cash_issued = {}
         amount_cash_issued = {}
+
         inward_bounce = {}
         outward_bounce = {}
         min_eod_bal = {}
@@ -1687,24 +1697,22 @@ class SingleBankStatementConverter:
         half_bal = {}
         yrly_bal = {}
         all_bank_avg_bal = {}
-        top_5_funds ={}
-        top_5_redemptions ={}
+        top_5_funds = {}
+        top_5_redemptions = {}
         bounced = {}
         emi = {}
         amount_pos_cr = {}
         amount_pos_dr = {}
-        datewise_bal ={}
+        datewise_bal = {}
         investment_dr = {}
-        investment_cr ={}
-        received_salary = {}
-        diff_bank_abb ={}
+        diff_bank_ab = {}
         interest_rec = {}
         paid_interest = {}
         paid_sal = {}
+        received_salary = {}
         paid_tds = {}
         paid_gst = {}
-
-
+        investment_cr = {}
         suspense = {}
 
         for month in months:
@@ -1717,29 +1725,78 @@ class SingleBankStatementConverter:
             amount_cd.update({month: total_amount_cd(new_df)})
             number_cw.update({month: total_number_cw(new_df)})
             amount_cw.update({month: total_amount_cw(new_df)})
+            no_cheque_depo.update({month: no_cheque_depos(new_df)})
+            amt_cheque_depo.update({month: amt_cheque_depos(new_df)})
             number_cash_issued.update({month: no_cash_issued(new_df)})
             amount_cash_issued.update({month: total_amount_cash_issued(new_df)})
             inward_bounce.update({month: inward_cheque_bounces(new_df)})
             outward_bounce.update({month: outward_cheque_bounces(new_df)})
+            min_eod_bal.update({month: min_eod(new_df,month)})
+            max_eod_bal.update({month: max_eod(new_df,month)})
+            avg_eod_bal.update({month: avg_eod(new_df)})
+            qtrlu_bal.update({month: qtrly_avg_bal(new_df)})
+            half_bal.update({month: half_yrly_bal(new_df)})
+            yrly_bal.update({month: yrly_avg_bal(new_df)})
+            all_bank_avg_bal.update({month: all_bank_avg(new_df)})
+            top_5_funds.update({month: top5_funds_rec(new_df)})
+            top_5_redemptions.update({month: top5_redemption(new_df)})
+            bounced.update({month: bounced_txns(new_df)})
+            emi.update({month: emi1(new_df)})
             amount_pos_cr.update({month: total_amount_pos_cr(new_df)})
             amount_pos_dr.update({month: total_amount_pos_dr(new_df)})
-            investment.update({month: total_investment(new_df)})
+            datewise_bal.update({month: datewise_avg_bal(new_df)})
+            investment_dr.update({month: total_investment(new_df)})
+            diff_bank_ab.update({month: diff_bank_abb(new_df)})
+            interest_rec.update({month: interest_rece(new_df)})
+            paid_interest.update({month: paid_interest1(new_df)})
+            paid_sal.update({month: paid_salary(new_df)})
+            received_salary.update({month: salary_rec(new_df)})
+            paid_tds.update({month: paid_tds1(new_df)})
+            paid_gst.update({month: GST(new_df)})
+
+
 
             ###now we make sheets
             sheet_1 = pd.DataFrame(
-                [number_cr, amount_cr, number_dr, amount_dr, number_cw, amount_cw, number_cd, amount_cd,
-                 number_cash_issued, amount_cash_issued, inward_bounce, outward_bounce, amount_pos_cr,
-                 investment, amount_pos_dr, opening_bal,
-                 closing_bal])
+                [number_cr, amount_cr,
+                 number_dr, amount_dr,
+                 number_cd, amount_cd,
+                 number_cw, amount_cw,
+                 no_cheque_depo,amt_cheque_depo,
+                 number_cash_issued, amount_cash_issued,
+                 inward_bounce, outward_bounce,
+                 min_eod_bal,max_eod_bal,
+                 avg_eod_bal,qtrlu_bal,
+                 half_bal,yrly_bal,
+                 all_bank_avg_bal,top_5_funds,
+                 top_5_redemptions,bounced,
+                 emi,amount_pos_cr,amount_pos_dr,
+                 datewise_bal,investment_dr,
+                 diff_bank_ab,interest_rec,
+                 paid_interest,paid_sal,
+                 received_salary,paid_tds,
+                 opening_bal,closing_bal,,paid_gst])
             sheet_1.insert(0, "Particulars",
-                           ["number of credit transaction", "Total Amount of Credit Transactions",
-                            "Number of debit transaction", "Total Amount of Debit Transactions",
-                            "Number of cash withdrawals", "Total Amount of Cash Withdrawals", "number of cash deposits",
-                            "Total Amount of Cash Deposits", "Total No. of Cheque Issued",
-                            "Total Amount of Cheque Issued", "Total No. of Inward Cheque Bounces",
-                            "Total No. of Outward Cheque Bounces",
-                            "POS Txns - Cr", "Investment Details", "POS Txns - Dr", "Opening Balance",
-                            "Closing Balance"])
+                           ["Total No. of Credit Transactions","Total Amount of Credit Transactions",
+                            "Total No. of Debit Transactions","Total Amount of Debit Transactions",
+                            "Total No. of Cash Deposits","Total Amount of Cash Deposits"
+                            "Total No. of Cash Withdrawals","Total Amount of Cash Withdrawals",
+                            "Total No. of Cheque Deposits","Total Amount of Cheque Deposits",
+                            "Total No. of Cheque Issued","Total Amount of Cheque Issued",
+                            "Total No. of Inward Cheque Bounces","Total No. of Outward Cheque Bounces",
+                            "Min EOD Balance","Max EOD Balance",
+                            "Average EOD Balance","Qtrly AVG Bal",
+                            "Half Yrly AVG Bal","Yrly AVG Bal",
+                            "All Bank Avg Balance","Monthly Top 5 Funds Received",
+                            "Monthly Top 5 Funds Remittances","Bounced Txns",
+                            "EMI","Pos-cr","Pos-dr",
+                            "Datewise Average Balance","Investment Details",
+                            "Different Bank ABB Balance","Bank Interest Received",
+                            "Bank Interest Paid (Only in OD/CC A/c)","Salaries Paid",
+                            "Salary Received","TDS Deducted",
+                            "Opening Balance","Closing Balance",
+                            "Total GST"
+                            ])
             sheet_1['Total'] = sheet_1.iloc[:, 1:].sum(axis=1)
 
             df_list = [sheet_1]
@@ -1839,7 +1896,7 @@ class SingleBankStatementConverter:
                 last_non_zero_row = non_zero_rows.iloc[-1]
                 closing_bal[column] = last_non_zero_row[column]
         # for summary sheets
-        summary_df_list = self.summary_sheet(transaction_sheet_df.copy(), opening_bal, closing_bal)
+        summary_df_list = self.summary_sheet(transaction_sheet_df.copy(), opening_bal, closing_bal, eod_sheet_df.copy())
         sheet_name = "Summary"  # summary joining
         name_n_num_df.to_excel(self.writer, sheet_name=sheet_name, startcol=1, index=False)
         summary_df_list[0].to_excel(self.writer, sheet_name=sheet_name, startrow=name_n_num_df.shape[0] + 2, startcol=1,
