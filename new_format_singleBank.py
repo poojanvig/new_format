@@ -1588,7 +1588,7 @@ class SingleBankStatementConverter:
             return amount
 
         # interest recieved fropm bank
-        def recieved_interest(df):
+        def received_interest(df):
             amount = 0
             for index, row in df.iterrows():
                 credit_amount = row['Credit']
@@ -1597,7 +1597,7 @@ class SingleBankStatementConverter:
             return amount
 
         # salary recieved
-        def recieved_salary(df):
+        def received_salary(df):
             amount = 0
             for index, row in df.iterrows():
                 credit_amount = row['Credit']
@@ -1680,40 +1680,31 @@ class SingleBankStatementConverter:
         amount_cash_issued = {}
         inward_bounce = {}
         outward_bounce = {}
+        min_eod_bal = {}
+        max_eod_bal = {}
+        avg_eod_bal = {}
+        qtrlu_bal = {}
+        half_bal = {}
+        yrly_bal = {}
+        all_bank_avg_bal = {}
+        top_5_funds ={}
+        top_5_redemptions ={}
+        bounced = {}
+        emi = {}
         amount_pos_cr = {}
         amount_pos_dr = {}
-        investment = {}
+        datewise_bal ={}
+        investment_dr = {}
+        investment_cr ={}
+        received_salary = {}
+        diff_bank_abb ={}
+        interest_rec = {}
+        paid_interest = {}
+        paid_sal = {}
+        paid_tds = {}
+        paid_gst = {}
 
-        interest_recieved = {}
-        salary_recieved = {}
-        nach_reciepts = {}
-        loans_recieved = {}
-        income_tax_refund = {}
-        dividend = {}
-        rent_recieved = {}
 
-        interest_paid = {}
-        salary_paid = {}
-        bank_charges = {}
-        emi = {}
-        tds_deducted = {}
-        gst = {}
-        income_tax_paid = {}
-        utility_bills = {}
-        travelling_expense = {}
-        rent_paid = {}
-        total_expense = {}
-
-        general_insurance = {}
-        life_insurance = {}
-        food_expenses = {}
-        credit_card_payments = {}
-        online_shopping = {}
-        property_tax = {}
-        gas_payment = {}
-        gold_loan = {}
-        rent_paid = {}
-        total_amount = {}
         suspense = {}
 
         for month in months:
@@ -1730,11 +1721,9 @@ class SingleBankStatementConverter:
             amount_cash_issued.update({month: total_amount_cash_issued(new_df)})
             inward_bounce.update({month: inward_cheque_bounces(new_df)})
             outward_bounce.update({month: outward_cheque_bounces(new_df)})
-
             amount_pos_cr.update({month: total_amount_pos_cr(new_df)})
             amount_pos_dr.update({month: total_amount_pos_dr(new_df)})
             investment.update({month: total_investment(new_df)})
-
 
             ###now we make sheets
             sheet_1 = pd.DataFrame(
@@ -1855,8 +1844,6 @@ class SingleBankStatementConverter:
         name_n_num_df.to_excel(self.writer, sheet_name=sheet_name, startcol=1, index=False)
         summary_df_list[0].to_excel(self.writer, sheet_name=sheet_name, startrow=name_n_num_df.shape[0] + 2, startcol=1,
                                     index=False)
-
-        # Continue with your existing code...
 
         if num_pairs > 1:
             excel_transaction_sheet_df.to_excel(self.writer, sheet_name='Combined Transaction', index=False)
