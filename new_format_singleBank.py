@@ -1455,7 +1455,7 @@ class SingleBankStatementConverter:
 
     # ***************/-first page summary sheet-/*********************#
 
-    def summary_sheet(self, idf, open_bal, close_bal):
+    def summary_sheet(self, idf, open_bal, close_bal, eod):
         opening_bal = open_bal
         closing_bal = close_bal
 
@@ -1506,6 +1506,7 @@ class SingleBankStatementConverter:
             return amount
 
         def no_cash_issued(df):
+
             return 0
 
         def total_amount_cash_issued(df):
@@ -1517,16 +1518,17 @@ class SingleBankStatementConverter:
         def outward_cheque_bounces(df):
             return 0
 
-        def min_eod(df):
+        def min_eod(df, month):
+            eod_df = eod.iloc[:-2]
+            eod_month = eod_df[month]
+            print(eod_month)
+
             return 0
 
-        def max_eod(df):
+        def max_eod(df, month):
             return 0
 
         def avg_eod(df):
-            return 0
-
-        def monthly_avg_bal(df):
             return 0
 
         def qtrly_avg_bal(df):
@@ -1687,23 +1689,22 @@ class SingleBankStatementConverter:
         half_bal = {}
         yrly_bal = {}
         all_bank_avg_bal = {}
-        top_5_funds ={}
-        top_5_redemptions ={}
+        top_5_funds = {}
+        top_5_redemptions = {}
         bounced = {}
         emi = {}
         amount_pos_cr = {}
         amount_pos_dr = {}
-        datewise_bal ={}
+        datewise_bal = {}
         investment_dr = {}
-        investment_cr ={}
+        investment_cr = {}
         received_salary = {}
-        diff_bank_abb ={}
+        diff_bank_abb = {}
         interest_rec = {}
         paid_interest = {}
         paid_sal = {}
         paid_tds = {}
         paid_gst = {}
-
 
         suspense = {}
 
@@ -1719,7 +1720,7 @@ class SingleBankStatementConverter:
             amount_cw.update({month: total_amount_cw(new_df)})
             number_cash_issued.update({month: no_cash_issued(new_df)})
             amount_cash_issued.update({month: total_amount_cash_issued(new_df)})
-            inward_bounce.update({month: inward_cheque_bounces(new_df)})
+            inward_bounce.update({month: inward_cheque_bounces(new_df})
             outward_bounce.update({month: outward_cheque_bounces(new_df)})
             amount_pos_cr.update({month: total_amount_pos_cr(new_df)})
             amount_pos_dr.update({month: total_amount_pos_dr(new_df)})
@@ -1839,7 +1840,7 @@ class SingleBankStatementConverter:
                 last_non_zero_row = non_zero_rows.iloc[-1]
                 closing_bal[column] = last_non_zero_row[column]
         # for summary sheets
-        summary_df_list = self.summary_sheet(transaction_sheet_df.copy(), opening_bal, closing_bal)
+        summary_df_list = self.summary_sheet(transaction_sheet_df.copy(), opening_bal, closing_bal, eod_sheet_df.copy())
         sheet_name = "Summary"  # summary joining
         name_n_num_df.to_excel(self.writer, sheet_name=sheet_name, startcol=1, index=False)
         summary_df_list[0].to_excel(self.writer, sheet_name=sheet_name, startrow=name_n_num_df.shape[0] + 2, startcol=1,
