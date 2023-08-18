@@ -19,6 +19,8 @@ from openpyxl import Workbook
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 from datetime import datetime, timedelta
+from openpyxl import load_workbook
+from openpyxl.styles import PatternFill
 
 pd.options.display.float_format = "{:,.2f}".format
 
@@ -1618,6 +1620,7 @@ class SingleBankStatementConverter:
             return amount
 
             # salary paid
+
         def paid_salary(df):
             amount = 0
             for index, row in df.iterrows():
@@ -1649,7 +1652,6 @@ class SingleBankStatementConverter:
                 if row["Category"] == "GST Paid" and debit_amount > 0:
                     amount += debit_amount
             return amount
-
 
         # suspense
         def suspenses(df):
@@ -1733,35 +1735,6 @@ class SingleBankStatementConverter:
             amount_pos_dr.update({month: total_amount_pos_dr(new_df)})
             investment.update({month: total_investment(new_df)})
 
-            interest_recieved.update({month: recieved_interest(new_df)})
-            salary_recieved.update({month: recieved_salary(new_df)})
-            nach_reciepts.update({month: nach_reciept(new_df)})
-            loans_recieved.update({month: loan_recieved(new_df)})
-            income_tax_refund.update({month: recieved_tax(new_df)})
-            dividend.update({month: dividend_i(new_df)})
-            rent_recieved.update({month: recieved_rent(new_df)})
-
-            interest_paid.update({month: paid_interest(new_df)})
-            salary_paid.update({month: paid_salary(new_df)})
-            bank_charges.update({month: paid_bank(new_df)})
-            emi.update({month: paid_emi(new_df)})
-            tds_deducted.update({month: paid_tds(new_df)})
-            gst.update({month: GST(new_df)})
-            income_tax_paid.update({month: paid_tax(new_df)})
-            utility_bills.update({month: utility_bills_i(new_df)})
-            travelling_expense.update({month: travelling_bills(new_df)})
-            rent_paid.update({month: paid_rent(new_df)})
-
-            general_insurance.update({month: paid_general_insurance(new_df)})
-            life_insurance.update({month: paid_life_insurance(new_df)})
-            food_expenses.update({month: food_expense(new_df)})
-            credit_card_payments.update({month: credit_card_payment(new_df)})
-            online_shopping.update({month: paid_online_shopping(new_df)})
-            property_tax.update({month: paid_property_tax(new_df)})
-            gas_payment.update({month: paid_gas_payment(new_df)})
-            gold_loan.update({month: paid_gold_loan(new_df)})
-            rent_paid.update({month: paid_rent(new_df)})
-            suspense.update({month: suspenses(new_df)})
 
             ###now we make sheets
             sheet_1 = pd.DataFrame(
@@ -1780,53 +1753,7 @@ class SingleBankStatementConverter:
                             "Closing Balance"])
             sheet_1['Total'] = sheet_1.iloc[:, 1:].sum(axis=1)
 
-            sheet_2 = pd.DataFrame(
-                [amount_cr, interest_recieved, salary_recieved, nach_reciepts, loans_recieved, income_tax_refund,
-                 dividend, rent_recieved])
-            sheet_2.insert(0, "Income",
-                           ["Total Amount of Credit Transactions", "Bank Interest Recieved", "Salary Recieved",
-                            "NACH Reciepts", "Loans Recieved", "Income Tax Refund", "Dividend", "Rent Recieved"])
-            sheet_2 = sheet_2._append(sheet_2.sum(), ignore_index=True)
-            sheet_2.iloc[-1, 0] = "Total"
-            sheet_2['Total'] = sheet_2.iloc[:, 1:].sum(axis=1)
-
-            sheet_3 = pd.DataFrame(
-                [amount_dr, interest_paid, salary_paid, bank_charges, emi, tds_deducted, gst, income_tax_paid,
-                 utility_bills, travelling_expense, rent_paid])
-            sheet_3.insert(0, "Expenditure",
-                           ["Total Amount of Debit Transactions", "Bank Interest Paid (Only in OD/CC A/c)",
-                            "Salaries Paid", "Bank Charges", "EMI***", "TDS Deducted", "Total GST",
-                            "Total Income Tax Paid", "Utility Bills", "Travelling Expense", "Rent Paid"])
-            sheet_3 = sheet_3._append(sheet_3.sum(), ignore_index=True)
-            sheet_3.iloc[-1, 0] = "Total"
-            sheet_3['Total'] = sheet_3.iloc[:, 1:].sum(axis=1)
-
-            sheet_4 = pd.DataFrame(
-                [general_insurance, life_insurance, food_expenses, credit_card_payments, online_shopping, property_tax,
-                 gas_payment, gold_loan, rent_paid])
-            sheet_4.insert(0, "Personal Expenses",
-                           ["General Insurance", "Life Insurance", "Food Expenses", "Credit Card Payment",
-                            "Online Shopping", "Property Tax", "Gas payments", "Gold Loan (Only Interest)",
-                            "Rent Paid"])
-            sheet_4 = sheet_4._append(sheet_4.sum(), ignore_index=True)
-            sheet_4.iloc[-1, 0] = "Total"
-            sheet_4['Total'] = sheet_4.iloc[:, 1:].sum(axis=1)
-
-            sheet_5 = pd.DataFrame(
-                [amount_dr, interest_paid, salary_paid, bank_charges, emi, tds_deducted, gst, income_tax_paid,
-                 utility_bills, travelling_expense, general_insurance, life_insurance, food_expenses,
-                 credit_card_payments, online_shopping, property_tax, gas_payment, gold_loan, rent_paid, suspense])
-            sheet_5.insert(0, "Expenditure",
-                           ["Total Amount of Debit Transactions", "Bank Interest Paid (Only in OD/CC A/c)",
-                            "Salaries Paid", "Bank Charges", "EMI***", "TDS Deducted", "Total GST",
-                            "Total Income Tax Paid", "Utility Bills", "Travelling Expense", "General Insurance",
-                            "Life Insurance", "Food Expenses", "Credit Card Payment", "Online Shopping", "Property Tax",
-                            "Gas payments", "Gold Loan (Only Interest)", "Rent Paid", "Suspense"])
-            sheet_5 = sheet_5._append(sheet_5.sum(), ignore_index=True)
-            sheet_5.iloc[-1, 0] = "Total"
-            sheet_5['Total'] = sheet_5.iloc[:, 1:].sum(axis=1)
-
-            df_list = [sheet_1, sheet_2, sheet_3, sheet_4, sheet_5]
+            df_list = [sheet_1]
 
         return df_list
 
@@ -1925,24 +1852,12 @@ class SingleBankStatementConverter:
         # for summary sheets
         summary_df_list = self.summary_sheet(transaction_sheet_df.copy(), opening_bal, closing_bal)
         sheet_name = "Summary"  # summary joining
-        name_n_num_df.to_excel(self.writer, sheet_name=sheet_name, index=False)
-        summary_df_list[0].to_excel(self.writer, sheet_name=sheet_name, startrow=name_n_num_df.shape[0] + 2,
+        name_n_num_df.to_excel(self.writer, sheet_name=sheet_name, startcol=1, index=False)
+        summary_df_list[0].to_excel(self.writer, sheet_name=sheet_name, startrow=name_n_num_df.shape[0] + 2, startcol=1,
                                     index=False)
-        summary_df_list[1].to_excel(self.writer, sheet_name=sheet_name,
-                                    startrow=name_n_num_df.shape[0] + summary_df_list[0].shape[0] + 4,
-                                    index=False)
-        summary_df_list[2].to_excel(self.writer, sheet_name=sheet_name,
-                                    startrow=name_n_num_df.shape[0] + summary_df_list[0].shape[0] +
-                                             summary_df_list[1].shape[0] + 6, index=False)
-        summary_df_list[3].to_excel(self.writer, sheet_name=sheet_name,
-                                    startrow=name_n_num_df.shape[0] + summary_df_list[0].shape[0] +
-                                             summary_df_list[1].shape[0] +
-                                             summary_df_list[2].shape[0] + 8, index=False)
-        summary_df_list[4].to_excel(self.writer, sheet_name=sheet_name,
-                                    startrow=name_n_num_df.shape[0] + summary_df_list[0].shape[0] +
-                                             summary_df_list[1].shape[0] +
-                                             summary_df_list[2].shape[0] + summary_df_list[3].shape[0] + 10,
-                                    index=False)
+
+        # Continue with your existing code...
+
         if num_pairs > 1:
             excel_transaction_sheet_df.to_excel(self.writer, sheet_name='Combined Transaction', index=False)
             eod_sheet_df.to_excel(self.writer, sheet_name='Combined EOD Balance', index=False)
