@@ -177,7 +177,6 @@ class SingleBankStatementConverter:
             new_df = df.copy()  # No reversal required
         return new_df
 
-
     def check_balance(self, df):
         df.loc[:, 'Debit'] = pd.to_numeric(df['Debit'], errors='coerce')  # Convert 'Debit' column to numeric
         df.loc[:, 'Credit'] = pd.to_numeric(df['Credit'], errors='coerce')  # Convert 'Credit' column to numeric
@@ -816,15 +815,16 @@ class SingleBankStatementConverter:
         start_date = datetime.strptime(start_date_str, date_format)
         end_date = datetime.strptime(end_date_str, date_format)
         if start_date.day != 1:
-            print(f"The statement should start from the first day of a month. Your statement starts on {start_date_str}.")
+            print(
+                f"The statement should start from the first day of a month. Your statement starts on {start_date_str}.")
         next_day = end_date + timedelta(days=1)
         if next_day.day != 1:
             print(f"The statement should end on the last day of a month. Your statement ends on {end_date_str}.")
         return print("Statement starts from first day of month and ends on last day of month.")
 
-
     def convert_to_dt_format(self, date_str):
-        formats_to_try = ["%d-%m-%Y", "%d %b %Y", "%d %B %Y", "%d/%m/%Y", "%d/%m/%Y", "%d-%m-%Y", "%d-%b-%Y", "%d/%m/%Y"]
+        formats_to_try = ["%d-%m-%Y", "%d %b %Y", "%d %B %Y", "%d/%m/%Y", "%d/%m/%Y", "%d-%m-%Y", "%d-%b-%Y",
+                          "%d/%m/%Y"]
         for format_str in formats_to_try:
             try:
                 date_obj = datetime.strptime(date_str, format_str)
@@ -1421,7 +1421,6 @@ class SingleBankStatementConverter:
                 em_i = em_i._append(row, ignore_index=True)
         return em_i
 
-
     # for creditor list
 
     #
@@ -1439,7 +1438,6 @@ class SingleBankStatementConverter:
         # return c_df
 
     # for suspense debit
-
 
     def suspense_debit(self, df):
         suspense_dr = df[df["Category"].str.contains("Suspense")].groupby('Debit')
@@ -1462,6 +1460,7 @@ class SingleBankStatementConverter:
         def total_number_cr(df):
             number = df["Credit"].count()
             return number
+
         # total amount of credit transactions
         def total_amount_cr(df):
             sum = df["Credit"].sum(axis=0)
@@ -1477,9 +1476,10 @@ class SingleBankStatementConverter:
             return sum
 
         def total_number_cd(df):
-            cd = df["Category"] =="Cash Deposits"
+            cd = df["Category"] == "Cash Deposits"
             cd = cd.count()
             return cd
+
         # total amount of cash deposits ###money credited to your account
         def total_amount_cd(df):
             amount = 0
@@ -1488,10 +1488,12 @@ class SingleBankStatementConverter:
                 if row["Category"] == "Cash Deposits" and credit_amount > 0:
                     amount += credit_amount
             return amount
+
         def total_number_cw(df):
-            cw = df["Category"] =="Cash Withdrawal"
+            cw = df["Category"] == "Cash Withdrawal"
             cw = cw.count()
             return cw
+
         # total amount of cash withdrawn ### money is debited from your account
         def total_amount_cw(df):
             amount = 0
@@ -1501,7 +1503,59 @@ class SingleBankStatementConverter:
                     amount += debit_amount
             return amount
 
-        # POS transaction cr ###money credited to your account
+        def no_cash_issued(df):
+            return 0
+
+        def total_amount_cash_issued(df):
+            return 0
+
+        def inward_cheque_bounces(df):
+            return 0
+
+        def outward_cheque_bounces(df):
+            return 0
+
+        def min_eod(df):
+            return 0
+
+        def max_eod(df):
+            return 0
+
+        def avg_eod(df):
+            return 0
+
+        def monthly_avg_bal(df):
+            return 0
+
+        def qtrly_avg_bal(df):
+            return 0
+
+        def half_yrly_bal(df):
+            return 0
+
+        def yrly_avg_bal(df):
+            return 0
+
+        def all_bank_avg(df):
+            return 0
+
+        def top5_funds_rec(df):
+            return 0
+
+        def top5_redemption(df):
+            return 0
+
+        def bounced_txns(df):
+            return 0
+
+        def emi(df):
+            amount = 0
+            for index, row in df.iterrows():
+                debit_amount = row['Debit']
+                if row["Category"] == "EMI" and debit_amount > 0:
+                    amount += debit_amount
+            return amount
+
         def total_amount_pos_cr(df):
             amount = 0
             for index, row in df.iterrows():
@@ -1518,6 +1572,9 @@ class SingleBankStatementConverter:
                 if row["Category"] == "POS-dr" and debit_amount > 0:
                     amount += debit_amount
             return amount
+
+        def datewise_avg_bal(df):
+            return 0
 
         # investment (money debited in total)
         def total_investment(df):
@@ -1546,51 +1603,12 @@ class SingleBankStatementConverter:
                     amount += credit_amount
             return amount
 
-        # loans recieved
-        def loan_recieved(df):
-            count = 0
-            for index, row in df.iterrows():
-                if row["Category"] == "Loan":
-                    count += 1
-            return count
+        def diff_bank_abb(df):
+            return 0
 
-        # nach reciepts (no of times NACH transactions took place)
-        def nach_reciept(df):
-            count = 0
-            for index, row in df.iterrows():
-                description = row['Description']
-                if 'nach' in description.lower():
-                    count += 1
-            return count
+        def interest_rec(df):
+            return 0
 
-        # income tax refund
-        def recieved_tax(df):
-            amount = 0
-            for index, row in df.iterrows():
-                credit_amount = row['Credit']
-                if row["Category"] == "Income Tax" and credit_amount > 0:
-                    amount += credit_amount
-            return amount
-
-        # rent recieved
-        def recieved_rent(df):
-            amount = 0
-            for index, row in df.iterrows():
-                credit_amount = row['Credit']
-                if row["Category"] == "Rent Recieved" and credit_amount > 0:
-                    amount += credit_amount
-            return amount
-
-        # dividend
-        def dividend_i(df):
-            amount = 0
-            for index, row in df.iterrows():
-                credit_amount = row['Credit']
-                if row["Category"] == "Dividend/interest" and credit_amount > 0:
-                    amount += credit_amount
-            return amount
-
-        # interest paid
         def paid_interest(df):
             amount = 0
             for index, row in df.iterrows():
@@ -1599,7 +1617,7 @@ class SingleBankStatementConverter:
                     amount += debit_amount
             return amount
 
-        # salary paid
+            # salary paid
         def paid_salary(df):
             amount = 0
             for index, row in df.iterrows():
@@ -1608,25 +1626,14 @@ class SingleBankStatementConverter:
                     amount += debit_amount
             return amount
 
-        # bank charges
-        def paid_bank(df):
+        def salary_rec(df):
             amount = 0
             for index, row in df.iterrows():
-                debit_amount = row['Debit']
-                if row["Category"] == "Bank Charges" and debit_amount > 0:
+                debit_amount = row['Credit']
+                if row["Category"] == "Salary" and debit_amount > 0:
                     amount += debit_amount
             return amount
 
-        # emi
-        def paid_emi(df):
-            amount = 0
-            for index, row in df.iterrows():
-                debit_amount = row['Debit']
-                if row["Category"] == "EMI" and debit_amount > 0:
-                    amount += debit_amount
-            return amount
-
-        # tds_deducted
         def paid_tds(df):
             amount = 0
             for index, row in df.iterrows():
@@ -1635,16 +1642,6 @@ class SingleBankStatementConverter:
                     amount += debit_amount
             return amount
 
-        # income tax
-        def paid_tax(df):
-            amount = 0
-            for index, row in df.iterrows():
-                debit_amount = row['Debit']
-                if row["Category"] == "Income Tax Paid" and debit_amount > 0:
-                    amount += debit_amount
-            return amount
-
-        # gst
         def GST(df):
             amount = 0
             for index, row in df.iterrows():
@@ -1653,104 +1650,6 @@ class SingleBankStatementConverter:
                     amount += debit_amount
             return amount
 
-        # utitlity bills
-        def utility_bills_i(df):
-            amount = 0
-            for index, row in df.iterrows():
-                debit_amount = row['Debit']
-                if row["Category"] == "Utility Bills" and debit_amount > 0:
-                    amount += debit_amount
-            return amount
-
-        # travelling expense
-        def travelling_bills(df):
-            amount = 0
-            for index, row in df.iterrows():
-                debit_amount = row['Debit']
-                if row["Category"] == "Travelling bills" and debit_amount > 0:
-                    amount += debit_amount
-            return amount
-
-        # rent paid
-        def paid_rent(df):
-            amount = 0
-            for index, row in df.iterrows():
-                debit_amount = row['Debit']
-                if row["Category"] == "Rent Paid" and debit_amount > 0:
-                    amount += debit_amount
-            return amount
-
-        # general insurance
-        def paid_general_insurance(df):
-            amount = 0
-            for index, row in df.iterrows():
-                debit_amount = row['Debit']
-                if row["Category"] == "General insurance" and debit_amount > 0:
-                    amount += debit_amount
-            return amount
-
-        # life insurance
-        def paid_life_insurance(df):
-            amount = 0
-            for index, row in df.iterrows():
-                debit_amount = row['Debit']
-                if row["Category"] == "Life insurance" and debit_amount > 0:
-                    amount += debit_amount
-            return amount
-
-        # food expense
-        def food_expense(df):
-            amount = 0
-            for index, row in df.iterrows():
-                debit_amount = row['Debit']
-                if row["Category"] == "Food Expense" and debit_amount > 0:
-                    amount += debit_amount
-            return amount
-
-        # credit card payment
-        def credit_card_payment(df):
-            amount = 0
-            for index, row in df.iterrows():
-                debit_amount = row['Debit']
-                if row["Category"] == "Credit Card" and debit_amount > 0:
-                    amount += debit_amount
-            return amount
-
-        # online_shopping
-        def paid_online_shopping(df):
-            amount = 0
-            for index, row in df.iterrows():
-                debit_amount = row['Debit']
-                if row["Category"] == "Online Shopping" and debit_amount > 0:
-                    amount += debit_amount
-            return amount
-
-        # property_tax
-        def paid_property_tax(df):
-            amount = 0
-            for index, row in df.iterrows():
-                debit_amount = row['Debit']
-                if row["Category"] == "Property Tax" and debit_amount > 0:
-                    amount += debit_amount
-            return amount
-
-        # gas_payment
-        def paid_gas_payment(df):
-            amount = 0
-            for index, row in df.iterrows():
-                debit_amount = row['Debit']
-                if row["Category"] == "Gas Payments" and debit_amount > 0:
-                    amount += debit_amount
-            return amount
-
-        # gold_loan
-        def paid_gold_loan(df):
-            amount = 0
-            for index, row in df.iterrows():
-                debit_amount = row['Debit']
-                if row["Category"] == "Gold Loan" and debit_amount > 0:
-                    amount += debit_amount
-            return amount
 
         # suspense
         def suspenses(df):
@@ -1767,7 +1666,7 @@ class SingleBankStatementConverter:
         # idf['Month'] = idf['Value Date'].dt.strftime('%b-%Y')
         months = idf["Month"].unique()
 
-        number_cr= {}
+        number_cr = {}
         amount_cr = {}
         number_dr = {}
         amount_dr = {}
@@ -1775,6 +1674,10 @@ class SingleBankStatementConverter:
         amount_cd = {}
         number_cw = {}
         amount_cw = {}
+        number_cash_issued = {}
+        amount_cash_issued = {}
+        inward_bounce = {}
+        outward_bounce = {}
         amount_pos_cr = {}
         amount_pos_dr = {}
         investment = {}
@@ -1821,6 +1724,11 @@ class SingleBankStatementConverter:
             amount_cd.update({month: total_amount_cd(new_df)})
             number_cw.update({month: total_number_cw(new_df)})
             amount_cw.update({month: total_amount_cw(new_df)})
+            number_cash_issued.update({month: no_cash_issued(new_df)})
+            amount_cash_issued.update({month: total_amount_cash_issued(new_df)})
+            inward_bounce.update({month: inward_cheque_bounces(new_df)})
+            outward_bounce.update({month: outward_cheque_bounces(new_df)})
+
             amount_pos_cr.update({month: total_amount_pos_cr(new_df)})
             amount_pos_dr.update({month: total_amount_pos_dr(new_df)})
             investment.update({month: total_investment(new_df)})
@@ -1857,11 +1765,17 @@ class SingleBankStatementConverter:
 
             ###now we make sheets
             sheet_1 = pd.DataFrame(
-                [number_cr,amount_cr,number_dr, amount_dr, number_cw,amount_cw,number_cd, amount_cd, amount_pos_cr, investment, amount_pos_dr, opening_bal,
+                [number_cr, amount_cr, number_dr, amount_dr, number_cw, amount_cw, number_cd, amount_cd,
+                 number_cash_issued, amount_cash_issued, inward_bounce, outward_bounce, amount_pos_cr,
+                 investment, amount_pos_dr, opening_bal,
                  closing_bal])
             sheet_1.insert(0, "Particulars",
-                           ["number of credit transaction","Total Amount of Credit Transactions","Number of debit transaction", "Total Amount of Debit Transactions",
-                            "Number of cash withdrawals","Total Amount of Cash Withdrawals", "number of cash deposits","Total Amount of Cash Deposits",
+                           ["number of credit transaction", "Total Amount of Credit Transactions",
+                            "Number of debit transaction", "Total Amount of Debit Transactions",
+                            "Number of cash withdrawals", "Total Amount of Cash Withdrawals", "number of cash deposits",
+                            "Total Amount of Cash Deposits", "Total No. of Cheque Issued",
+                            "Total Amount of Cheque Issued", "Total No. of Inward Cheque Bounces",
+                            "Total No. of Outward Cheque Bounces",
                             "POS Txns - Cr", "Investment Details", "POS Txns - Dr", "Opening Balance",
                             "Closing Balance"])
             sheet_1['Total'] = sheet_1.iloc[:, 1:].sum(axis=1)
@@ -1964,7 +1878,6 @@ class SingleBankStatementConverter:
                 idf.at[index, 'Bank'] = idf.at[index - 1, 'Bank']
                 idf.at[index, 'Balance'] = idf.at[index - 1, 'Balance']
         return idf
-
 
     def Single_Bank_statement(self, dfs, name_dfs):
         data = []
