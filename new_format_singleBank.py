@@ -1320,9 +1320,9 @@ class SingleBankStatementConverter:
                 for month in columns:
                     if any(col in month for col in col_values):
                         if 'Feb' in month and row['Day'] > 28:
-                            pivot_df.loc[i, month] = 0.0
+                            pivot_df.loc[i, month] = np.nan
                         elif row['Day'] > 30:
-                            pivot_df.loc[i, month] = 0.0
+                            pivot_df.loc[i, month] = np.nan
 
             # last_column_list = pivot_df.iloc[:, -1].tolist()
             # new_column = last_column_list.copy()
@@ -1524,18 +1524,59 @@ class SingleBankStatementConverter:
 
         def min_eod(df, month):
             eod_df = eod.iloc[:-2]
-            eod_month = eod_df[month]
-            print(eod_month)
-
-            return 0
+            eod_month = eod_df[month].values
+            min = np.nanmin(eod_month)
+            return min
 
         def max_eod(df, month):
-            return 0
+            eod_df = eod.iloc[:-2]
+            eod_month = eod_df[month].values
+            max = np.nanmax(eod_month)
+            return max
 
         def avg_eod(df):
-            return 0
+            eod_df = eod.iloc[:-2]
+            eod_month = eod_df[month].values
+            avg = np.nanmean(eod_month)
+            return avg
 
         def qtrly_avg_bal(df):
+            eod_df = eod.fillna(0.0)
+            eoe = eod_df.iloc[:, 1:]
+            #################################################################################
+            # import pandas as pd
+            #
+            # # Assuming 'df' is your DataFrame
+            # data = {
+            #     # 'Day': [1, 2, 3, 4, 5],
+            #     'Sep-2020': [1, 2, 3, 4, 5],
+            #     'Oct-2020': [6, 7, 8, 9, 10],
+            #     'Nov-2020': [11, 12, 13, 14, 15],
+            #     'Dec-2020': [16, 17, 18, 19, 20],
+            #     'Jan-2021': [21, 22, 23, 24, 25],
+            #     'Feb-2021': [26, 27, 28, 29, 30],
+            #     'Mar-2021': [31, 32, 33, 34, 35],
+            #
+            # }
+            #
+            # df = pd.DataFrame(data)
+            # df_chi_list = []
+            #
+            # # Iterate through every three columns in the original DataFrame
+            # for i in range(0, df.shape[1], 3):
+            #     # Get the current three columns
+            #     subset = df.iloc[:, i:i + 3]
+            #     if subset.shape[1] < 3:
+            #         new_row = 0.0
+            #     else:
+            #         new_row = subset.iloc[-2].sum() / 3
+            #
+            #     subset.loc[len(subset)] = new_row
+            #     df_chi_list.append(subset)
+            #
+            # result_df = pd.concat(df_chi_list, axis=1)
+            # print(result_df)
+            ##########################################################################################################
             return 0
 
         def half_yrly_bal(df):
@@ -1775,11 +1816,11 @@ class SingleBankStatementConverter:
                  diff_bank_ab,interest_rec,
                  paid_interest,paid_sal,
                  received_salary,paid_tds,
-                 opening_bal,closing_bal,,paid_gst])
+                 opening_bal,closing_bal,paid_gst])
             sheet_1.insert(0, "Particulars",
                            ["Total No. of Credit Transactions","Total Amount of Credit Transactions",
                             "Total No. of Debit Transactions","Total Amount of Debit Transactions",
-                            "Total No. of Cash Deposits","Total Amount of Cash Deposits"
+                            "Total No. of Cash Deposits","Total Amount of Cash Deposits",
                             "Total No. of Cash Withdrawals","Total Amount of Cash Withdrawals",
                             "Total No. of Cheque Deposits","Total Amount of Cheque Deposits",
                             "Total No. of Cheque Issued","Total Amount of Cheque Issued",
