@@ -1454,10 +1454,84 @@ class SingleBankStatementConverter:
         # return d_df
 
     # ***************/-first page summary sheet-/*********************#
+    def avgs_df(self, df):
+        # quarterly_avg
+        if df.shape[1] > 3:
+            df_chi_list_1 = []
+            # Iterate through every three columns in the original DataFrame
+            for i in range(1, df.shape[1], 3):
+                # Get the current three columns
+                subset = df.iloc[:, i:i + 3]
+                if subset.shape[1] < 3:
+                    new_row = 0.0
+                else:
+                    new_row = subset.iloc[-2].sum() / 3
+                subset.loc[len(subset)] = new_row
+                df_chi_list_1.append(subset)
+            result_df = pd.concat(df_chi_list_1, axis=1)
+            new_row = pd.Series({'Day': 'Quarterly Average'})
+            df = df._append(new_row, ignore_index=True)
+            result_df.insert(0, 'Day', df['Day'])
+            df = result_df
+
+            # half - yearly avg
+            if df.shape[1] > 6:
+                df_chi_list_2 = []
+                # Iterate through every three columns in the original DataFrame
+                for i in range(1, df.shape[1], 6):
+                    # Get the current three columns
+                    subset = df.iloc[:, i:i + 6]
+                    if subset.shape[1] < 6:
+                        new_row = 0.0
+                    else:
+                        new_row = subset.iloc[-3].sum() / 6
+                    subset.loc[len(subset)] = new_row
+                    df_chi_list_2.append(subset)
+                result_df = pd.concat(df_chi_list_2, axis=1)
+                new_row = pd.Series({'Day': 'Half-Yearly Average'})
+                df = df._append(new_row, ignore_index=True)
+                result_df.insert(0, 'Day', df['Day'])
+                df = result_df
+
+                # yearly avg
+                if df.shape[1] > 12:
+                    df_chi_list_3 = []
+                    # Iterate through every three columns in the original DataFrame
+                    for i in range(1, df.shape[1], 12):
+                        # Get the current three columns
+                        subset = df.iloc[:, i:i + 12]
+                        if subset.shape[1] < 12:
+                            new_row = 0.0
+                        else:
+                            new_row = subset.iloc[-4].sum() / 12
+                        subset.loc[len(subset)] = new_row
+                        df_chi_list_3.append(subset)
+                    result_df = pd.concat(df_chi_list_3, axis=1)
+                    new_row = pd.Series({'Day': 'Yearly Average'})
+                    df = df._append(new_row, ignore_index=True)
+                    result_df.insert(0, 'Day', df['Day'])
+                    df = result_df
+
+
+                else:
+                    new_row = pd.Series({'Day': 'Yearly Average'})
+                    df = df._append(new_row, ignore_index=True)
+
+            else:
+                new_row = pd.Series({'Day': 'Half-Yearly Average'})
+                df = df._append(new_row, ignore_index=True)
+
+        else:
+            new_row = pd.Series({'Day': 'Quarterly Average'})
+            df = df._append(new_row, ignore_index=True)
+
+        return df
 
     def summary_sheet(self, idf, open_bal, close_bal, eod):
         opening_bal = open_bal
         closing_bal = close_bal
+        eod_avg_df = self.avgs_df(eod) ##eod added with quarterly, half-yearly, yearly averages
+
 
         def total_number_cr(df):
             number = df["Credit"].count()
@@ -1534,56 +1608,23 @@ class SingleBankStatementConverter:
             max = np.nanmax(eod_month)
             return max
 
-        def avg_eod(df):
+        def avg_eod(df, month):
             eod_df = eod.iloc[:-2]
             eod_month = eod_df[month].values
             avg = np.nanmean(eod_month)
             return avg
 
-        def qtrly_avg_bal(df):
-            eod_df = eod.fillna(0.0)
-            eoe = eod_df.iloc[:, 1:]
-            #################################################################################
-            # import pandas as pd
-            #
-            # # Assuming 'df' is your DataFrame
-            # data = {
-            #     # 'Day': [1, 2, 3, 4, 5],
-            #     'Sep-2020': [1, 2, 3, 4, 5],
-            #     'Oct-2020': [6, 7, 8, 9, 10],
-            #     'Nov-2020': [11, 12, 13, 14, 15],
-            #     'Dec-2020': [16, 17, 18, 19, 20],
-            #     'Jan-2021': [21, 22, 23, 24, 25],
-            #     'Feb-2021': [26, 27, 28, 29, 30],
-            #     'Mar-2021': [31, 32, 33, 34, 35],
-            #
-            # }
-            #
-            # df = pd.DataFrame(data)
-            # df_chi_list = []
-            #
-            # # Iterate through every three columns in the original DataFrame
-            # for i in range(0, df.shape[1], 3):
-            #     # Get the current three columns
-            #     subset = df.iloc[:, i:i + 3]
-            #     if subset.shape[1] < 3:
-            #         new_row = 0.0
-            #     else:
-            #         new_row = subset.iloc[-2].sum() / 3
-            #
-            #     subset.loc[len(subset)] = new_row
-            #     df_chi_list.append(subset)
-            #
-            # result_df = pd.concat(df_chi_list, axis=1)
-            # print(result_df)
-            ##########################################################################################################
-            return 0
+        def qtrly_avg_bal(df, month):
+            qtrly_avg_balance = eod_avg_df.loc[eod_avg_df.index[-3], month]
+            return qtrly_avg_balance
 
-        def half_yrly_bal(df):
-            return 0
+        def half_yrly_bal(df, month):
+            half_yrly_avg_balance = eod_avg_df.loc[eod_avg_df.index[-2], month]
+            return half_yrly_avg_balance
 
-        def yrly_avg_bal(df):
-            return 0
+        def yrly_avg_bal(df, month):
+            yrly_avg_balance = eod_avg_df.loc[eod_avg_df.index[-1], month]
+            return yrly_avg_balance
 
         def all_bank_avg(df):
             return 0
@@ -1772,12 +1813,12 @@ class SingleBankStatementConverter:
             amount_cash_issued.update({month: total_amount_cash_issued(new_df)})
             inward_bounce.update({month: inward_cheque_bounces(new_df)})
             outward_bounce.update({month: outward_cheque_bounces(new_df)})
-            min_eod_bal.update({month: min_eod(new_df,month)})
-            max_eod_bal.update({month: max_eod(new_df,month)})
-            avg_eod_bal.update({month: avg_eod(new_df)})
-            qtrlu_bal.update({month: qtrly_avg_bal(new_df)})
-            half_bal.update({month: half_yrly_bal(new_df)})
-            yrly_bal.update({month: yrly_avg_bal(new_df)})
+            min_eod_bal.update({month: min_eod(new_df, month)})
+            max_eod_bal.update({month: max_eod(new_df, month)})
+            avg_eod_bal.update({month: avg_eod(new_df, month)})
+            qtrlu_bal.update({month: qtrly_avg_bal(new_df, month)})
+            half_bal.update({month: half_yrly_bal(new_df, month)})
+            yrly_bal.update({month: yrly_avg_bal(new_df, month)})
             all_bank_avg_bal.update({month: all_bank_avg(new_df)})
             top_5_funds.update({month: top5_funds_rec(new_df)})
             top_5_redemptions.update({month: top5_redemption(new_df)})
